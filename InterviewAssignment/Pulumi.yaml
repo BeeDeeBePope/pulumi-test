@@ -1,0 +1,7 @@
+name: InterviewAssignment
+runtime: dotnet
+description: Azure Native C# Pulumi program defining infrastructure for Interview Assignment
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: azure-csharp

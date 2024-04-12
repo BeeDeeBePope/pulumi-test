@@ -1,0 +1,3 @@
+config:
+  azure-native:location: PolandCentral
+  network:vnetAddressSpace: 10.10.100.0/24
