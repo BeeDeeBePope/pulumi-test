@@ -6,22 +6,24 @@ using Pulumi.AzureNative.Network.Inputs;
 
 public class AssignmentVirtualNetworkArgs
 {
-    private readonly VirtualNetworkArgs vnetArgs;
+    private readonly Input<string> rgName;
+    private readonly Input<string> location;
+    private readonly Input<string> addressPrefix;
+
     public AssignmentVirtualNetworkArgs(Input<string> rgName, Input<string> location, Input<string> addressPrefix)
     {
-        this.vnetArgs = new VirtualNetworkArgs
-        {
-            AddressSpace = new AddressSpaceArgs
-            {
-                AddressPrefixes = new[] { addressPrefix }
-            },
-            ResourceGroupName = rgName,
-            Location = location
-        };
+        this.rgName = rgName;
+        this.location = location;
+        this.addressPrefix = addressPrefix;
     }
 
-    public VirtualNetworkArgs GetVnetArgs()
+    public VirtualNetworkArgs GetVnetArgs() => new()
     {
-        return vnetArgs;
-    }
+        AddressSpace = new AddressSpaceArgs
+        {
+            AddressPrefixes = new[] { addressPrefix }
+        },
+        ResourceGroupName = rgName,
+        Location = location
+    };
 }

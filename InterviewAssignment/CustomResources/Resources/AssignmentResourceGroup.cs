@@ -1,4 +1,4 @@
-using System;
+using InterviewAssignmnet.Extensions;
 using Pulumi;
 using Pulumi.AzureNative.Resources;
 
@@ -9,7 +9,7 @@ public class AssignmentResourceGroup
     private ResourceGroup rg;
     public AssignmentResourceGroup(string name, ResourceGroupArgs? rgArgs = default)
     {
-        this.rg = new ResourceGroup(name, rgArgs);
+        this.rg = new ResourceGroup(name.AddPrefixIfRequired<ResourceGroup>(), rgArgs);
     }
 
     public Output<string> GetName() => rg.Name;
