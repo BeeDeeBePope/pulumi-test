@@ -8,6 +8,6 @@ public class AssignmentSubnet
     private Subnet subnet;
     public AssignmentSubnet(string name, SubnetArgs subnetArgs)
     {
-        this.subnet = new Subnet(name.AddPrefixIfRequired<Subnet>(), subnetArgs);
+        this.subnet = new Subnet(name, subnetArgs);
     }
 }

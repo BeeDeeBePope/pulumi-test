@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pulumi;
+using Pulumi.AzureNative.ManagedIdentity;
 using Pulumi.AzureNative.Network;
 using Pulumi.AzureNative.Resources;
+using Pulumi.AzureNative.Web;
 
 public static class ResourceNamePrefixer
 {
@@ -16,6 +18,9 @@ public static class ResourceNamePrefixer
         { typeof(VirtualNetwork), "vnet-" },
         { typeof(NetworkSecurityGroup), "nsg-" },
         { typeof(Subnet), "snet-" },
+        { typeof(AppServicePlan), "asp-" },
+        { typeof(WebApp), "app-" },
+        { typeof(UserAssignedIdentity), "id-" },
     };
 
     public static string AddPrefixIfRequired<T>(this string prefixable) where T: CustomResource {

@@ -18,7 +18,8 @@ public class AssignmentNetworkSecurityRules
                 SourcePortRange = "*",
                 DestinationPortRange = "*",
                 SourceAddressPrefix = "VirtualNetwork",
-                DestinationAddressPrefix = "VirtualNetwork"
+                DestinationAddressPrefix = "VirtualNetwork",
+                Name = "AllowInbloudAllFromVnetToVnet",
             },
             new()
             {
@@ -28,8 +29,9 @@ public class AssignmentNetworkSecurityRules
                 Protocol = SecurityRuleProtocol.Tcp,
                 SourcePortRange = "*",
                 DestinationPortRange = "*",
-                SourceAddressPrefix = "*",
-                DestinationAddressPrefix = "*"
+                SourceAddressPrefix = "Internet",
+                DestinationAddressPrefix = "VirtualNetwork",
+                Name = "DenyInboudAllFromInternetToVnet",
             }
         };
     }

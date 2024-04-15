@@ -10,7 +10,7 @@ public class AssignmentVirtualNetwork
     private VirtualNetwork vnet;
     public AssignmentVirtualNetwork(string name, VirtualNetworkArgs args)
     {
-        this.vnet = new VirtualNetwork(name.AddPrefixIfRequired<VirtualNetwork>(), args);
+        this.vnet = new VirtualNetwork(name, args);
     }
 
     internal Output<string> GetName() => vnet.Name;

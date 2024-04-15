@@ -2,10 +2,19 @@ using Pulumi;
 using InterviewAssignmnet.CustomResources.Network;
 using InterviewAssignmnet.CustomResources.Resources;
 using System.Collections.Generic;
+using Pulumi.AzureNative.Resources;
+using InterviewAssignmnet.CustomResources.Web;
+using InterviewAssignmnet.CustomResources.Storage;
+using InterviewAssignmnet.CustomResources.ManagedIdentity;
+using Pulumi.AzureNative.Web.Inputs;
+using Pulumi.AzureNative.Web;
+using Pulumi.AzureNative.Storage;
 
 namespace InterviewAssignmnet.Stacks;
 public class AssignmentStack : Stack
 {
+    private readonly ResourceNames resourceNames;
+
     //Vnet
     //snet x2
     //private endpoing
@@ -18,39 +27,123 @@ public class AssignmentStack : Stack
     //blob container
     //user assigned managed identity
 
-    private readonly AssignmentResourceGroup rg;
-    private readonly AssignmentVirtualNetwork vnet;
-    private readonly AssignmentNetworkSecurityGroup funcAppSnetNsg;
-    private readonly AssignmentNetworkSecurityGroup appServiceSnetNsg;
-    private readonly AssignmentSubnet funcAppSubnet;
-    private readonly AssignmentSubnet appServiceSubnet;
+    private AssignmentResourceGroup rg;
+    private AssignmentVirtualNetwork vnet;
+    private AssignmentNetworkSecurityGroup funcAppSnetNsg;
+    private AssignmentNetworkSecurityGroup appServiceSnetNsg;
+    private AssignmentSubnet funcAppSubnet;
+    private AssignmentSubnet appServiceSubnet;
+    private AssignmentWebApp funcApp;
+    private AssignmentAppServicePlan funcAppAsp;
+    private AssignmentUserAssignedIdentity funcAppManagedIdentity;
+    private AssignmentWebApp appService;
+    private AssignmentAppServicePlan appServiceAsp;
+    private AssignmentUserAssignedIdentity appServiceManagedIdentity;
+    private AssignmentStorageAccount funcAppStorage;
+    private BlobContainer blobContainer;
 
     public AssignmentStack()
     {
         var config = new Config("general");
         var azureConfig = new Config("azure-native");
-        var networkConfig = new Config("network");
 
         var location = azureConfig.Require("location");
 
+
+        resourceNames = new ResourceNames(location);
+
+        rg = new AssignmentResourceGroup(resourceNames.RgName, new ResourceGroupArgs
+        {
+            ResourceGroupName = resourceNames.RgName,
+            Location = location,
+        });
+
+        DeployVirtualNetworks();
+
+        DeployWebApps();
+    }
+
+    private void DeployVirtualNetworks()
+    {
+        var networkConfig = new Config("network");
         var vnetAddressSpace = networkConfig.Require("vnetAddressSpace");
         var funcAppSubnetAddressSpace = networkConfig.Require("funcAppSubnetAddressSpace");
         var appServiceSubnetAddressSpace = networkConfig.Require("appServiceSubnetAddressSpace");
 
-        rg = new AssignmentResourceGroup($"assignment-{location}");
-
-        var assignmentVnetArgs = new AssignmentVirtualNetworkArgs(rg.GetName(), rg.GetLocation(), vnetAddressSpace);
-        vnet = new AssignmentVirtualNetwork($"assignment-{location}", assignmentVnetArgs.GetVnetArgs());
+        var assignmentVnetArgs = new AssignmentVirtualNetworkArgs(rg.GetName(), rg.GetLocation(), resourceNames.VnetName, vnetAddressSpace);
+        vnet = new AssignmentVirtualNetwork(resourceNames.VnetName, assignmentVnetArgs.GetVnetArgs());
 
         var defaultNsgRules = new AssignmentNetworkSecurityRules();
-        var defaultNsgArgs = new AssignmentNetworkSecurityGroupArgs(rg.GetName(), $"assignment-{location}-func-app", defaultNsgRules.GetRules());
 
-        funcAppSnetNsg = new AssignmentNetworkSecurityGroup($"assignment-{location}-func-app", defaultNsgArgs.GetNetworkSecurityGroupArgs());
+        var funcAppNsgArgs = new AssignmentNetworkSecurityGroupArgs(rg.GetName(), resourceNames.FuncAppNsgName, defaultNsgRules.GetRules());
+        funcAppSnetNsg = new AssignmentNetworkSecurityGroup(resourceNames.FuncAppNsgName, funcAppNsgArgs.GetNetworkSecurityGroupArgs());
 
-        var funcAppSubnetArgs = new AssignmentSubnetArgs(rg.GetName(), vnet.GetName(), funcAppSubnetAddressSpace);
-        funcAppSubnet = new AssignmentSubnet($"assignment-{location}-func-app", funcAppSubnetArgs.GetSubnetArgs());
+        var funcAppSubnetArgs = new AssignmentSubnetArgs(rg.GetName(), vnet.GetName(), resourceNames.FuncAppSnetName, funcAppSubnetAddressSpace);
+        funcAppSubnet = new AssignmentSubnet(resourceNames.FuncAppSnetName, funcAppSubnetArgs.GetSubnetArgs());
 
-        var appServiceSubnetArgs = new AssignmentSubnetArgs(rg.GetName(), vnet.GetName(), appServiceSubnetAddressSpace);
-        appServiceSubnet = new AssignmentSubnet($"assignment-{location}-app-service", appServiceSubnetArgs.GetSubnetArgs());
+        var appServiceNsgArgs = new AssignmentNetworkSecurityGroupArgs(rg.GetName(), resourceNames.AppServiceNsgName, defaultNsgRules.GetRules());
+        appServiceSnetNsg = new AssignmentNetworkSecurityGroup(resourceNames.AppServiceNsgName, appServiceNsgArgs.GetNetworkSecurityGroupArgs());
+
+        var appServiceSubnetArgs = new AssignmentSubnetArgs(rg.GetName(), vnet.GetName(), resourceNames.AppServiceSnetName, appServiceSubnetAddressSpace);
+        appServiceSubnet = new AssignmentSubnet(resourceNames.AppServiceSnetName, appServiceSubnetArgs.GetSubnetArgs());
+    }
+
+    private void DeployWebApps()
+    {
+        var funcAppStorageArgs = new AssignmentStorageAccountArgs(rg.GetName(), resourceNames.FuncAppStorageAccount);
+        funcAppStorage = new AssignmentStorageAccount(resourceNames.FuncAppStorageAccount, funcAppStorageArgs.GetStorageAccountArgs());
+
+        var blobContainerArgs = new AssignmentBlobContainerArgs();
+        blobContainer = new AssignmentBlobContainer(resourceNames.FuncAppDiagnosticsSettingsContainer, blobContainerArgs);
+
+        var funcAppAspArgs = new AssignmentAppServicePlanArgs(rg.GetName(), resourceNames.FuncAppAspName, "Linux", AspSku.FunctionApp);
+        funcAppAsp = new AssignmentAppServicePlan(resourceNames.FuncAppAspName, funcAppAspArgs.GetAspArgs());
+
+        var funcAppManagedIndentityArgs = new AssignmentUserAssignedIdentityArgs(rg.GetName(), resourceNames.FuncAppManagedIdentityName);
+        funcAppManagedIdentity = new AssignmentUserAssignedIdentity(resourceNames.FuncAppManagedIdentityName, funcAppManagedIndentityArgs.GetUserAssignedIdentityArgs());
+
+        var funcAppSettings = new List<NameValuePairArgs>()
+        {
+            new NameValuePairArgs
+            {
+                Name = "AzureWebJobsStorage",
+                Value = funcAppStorage.GetConnectionString(),
+            },
+        };
+        var funcAppDiagnosticSettings = new WebAppDiagnosticLogsConfiguration("FuncAppDiagnosticsSettings", new WebAppDiagnosticLogsConfigurationArgs
+        {
+            Name = resourceNames.FuncAppDiagnosticsSettings,
+            ResourceGroupName = rg.GetName(),
+            DetailedErrorMessages = new EnabledConfigArgs
+            {
+                Enabled = false,
+            },
+            FailedRequestsTracing = new EnabledConfigArgs
+            {
+                Enabled = false,
+            },
+            ApplicationLogs = new ApplicationLogsConfigArgs
+            {
+                AzureBlobStorage = new AzureBlobStorageApplicationLogsConfigArgs
+                {
+                    Level = LogLevel.Information,
+                    RetentionInDays = 7,
+                    SasUrl = blobContainer
+                }
+            },
+            HttpLogs = ,
+            Kind = ""
+        });
+        var funcAppArgs = new AssignmentWebAppArgs(rg.GetName(), funcAppAsp.GetId(), WebAppKind.FunctionApp, funcAppManagedIdentity.GetId(), funcAppSettings);
+        funcApp = new AssignmentWebApp(resourceNames.FuncAppName, funcAppArgs.GetWebAppArgs());
+
+        var appServiceAspArgs = new AssignmentAppServicePlanArgs(rg.GetName(), resourceNames.AppServiceAspName, "Linux", AspSku.AppServiceFree);
+        appServiceAsp = new AssignmentAppServicePlan(resourceNames.AppServiceAspName, appServiceAspArgs.GetAspArgs());
+
+        var appServiceManagedIndentityArgs = new AssignmentUserAssignedIdentityArgs(rg.GetName(), resourceNames.AppServiceManagedIdentityName);
+        appServiceManagedIdentity = new AssignmentUserAssignedIdentity(resourceNames.AppServiceManagedIdentityName, appServiceManagedIndentityArgs.GetUserAssignedIdentityArgs());
+
+        var appServiceArgs = new AssignmentWebAppArgs(rg.GetName(), appServiceAsp.GetId(), WebAppKind.WebApp, appServiceManagedIdentity.GetId(), new List<Pulumi.AzureNative.Web.Inputs.NameValuePairArgs>());
+        appService = new AssignmentWebApp(resourceNames.AppServiceName, appServiceArgs.GetWebAppArgs());
     }
 }
