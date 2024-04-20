@@ -1,13 +1,12 @@
 using Pulumi;
 using Pulumi.AzureNative.Storage;
-using Pulumi.AzureNative.Storage.Inputs;
 
 namespace InterviewAssignmnet.CustomResources.Storage;
 
 public class AssignmentBlobContainer
 {
-    private BlobContainerArgs args;
-    private BlobContainer blobContianer;
+    private readonly BlobContainerArgs args;
+    private readonly BlobContainer blobContianer;
 
     public AssignmentBlobContainer(string name, BlobContainerArgs blobContainerArgs)
     {
@@ -19,14 +18,15 @@ public class AssignmentBlobContainer
     {
         var sasToken = Output.Create(ListStorageAccountSAS.InvokeAsync(new ListStorageAccountSASArgs
         {
-            AccountName = args.AccountName,
+            AccountName = "",
             Protocols = HttpProtocol.Https,
             SharedAccessStartTime = "2023-01-01T00:00:00Z",
             SharedAccessExpiryTime = "2023-12-31T00:00:00Z",
             ResourceGroupName = "resourceGroupName",
             Permissions = $"{Permissions.R}{Permissions.W}{Permissions.D}",
-            Services = Services.Blobs,
-            ResourceTypes = SignedResourceTypes.S + SignedResourceTypes.Container + SignedResourceTypes.Object,
+            Services = Services.B,
+            ResourceTypes = SignedResourceTypes.S,
         }));
+        return sasToken.Apply(storageSas => storageSas.AccountSasToken);
     }
 }

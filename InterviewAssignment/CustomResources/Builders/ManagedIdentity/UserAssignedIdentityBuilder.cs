@@ -5,22 +5,26 @@ namespace InterviewAssignmnet.CustomResources.Builders.ManagedIdentity;
 public class UserAssignedIdentityBuilder
     : AzureResourceBuilder<UserAssignedIdentity, UserAssignedIdentityArgs>
 {
-    private UserAssignedIdentityArgs args = new();
-    public UserAssignedIdentityBuilder(string nameSuffix) : base(nameSuffix) { }
+    private readonly UserAssignedIdentityArgs args = new();
 
-    public override UserAssignedIdentity Build()
-        => new UserAssignedIdentity(Name, args);
+    public UserAssignedIdentityBuilder(string nameSuffix)
+        : base(nameSuffix) { }
 
-    public override UserAssignedIdentityArgsBuilder InitializeArgs()
-        => new UserAssignedIdentityArgsBuilder(this, args);
+    public override UserAssignedIdentity Build() => new UserAssignedIdentity(Name, args);
+
+    public override UserAssignedIdentityArgsBuilder InitializeArgs() =>
+        new UserAssignedIdentityArgsBuilder(this, args);
 }
 
-public class UserAssignedIdentityArgsBuilder :
-    AzureResourceArgsBuilder<UserAssignedIdentity, UserAssignedIdentityArgs>
+public class UserAssignedIdentityArgsBuilder
+    : AzureResourceArgsBuilder<UserAssignedIdentity, UserAssignedIdentityArgs>
 {
-    private UserAssignedIdentityArgs args;
+    private readonly UserAssignedIdentityArgs args;
+
     public UserAssignedIdentityArgsBuilder(
-            UserAssignedIdentityBuilder resourceBuilder, UserAssignedIdentityArgs args)
+        UserAssignedIdentityBuilder resourceBuilder,
+        UserAssignedIdentityArgs args
+    )
         : base(resourceBuilder)
     {
         this.args = args;

@@ -2,25 +2,25 @@ using Pulumi.AzureNative.Network;
 
 namespace InterviewAssignmnet.CustomResources.Builders.Network;
 
-public class VirtualNetworkBuilder
-    : AzureResourceBuilder<VirtualNetwork, VirtualNetworkArgs>
+public class VirtualNetworkBuilder : AzureResourceBuilder<VirtualNetwork, VirtualNetworkArgs>
 {
-    private VirtualNetworkArgs args = new();
-    public VirtualNetworkBuilder(string nameSuffix) : base(nameSuffix) { }
+    private readonly VirtualNetworkArgs args = new();
 
-    public override VirtualNetwork Build()
-        => new VirtualNetwork(Name, args);
+    public VirtualNetworkBuilder(string nameSuffix)
+        : base(nameSuffix) { }
 
-    public override VirtualNetworkArgsBuilder InitializeArgs()
-        => new VirtualNetworkArgsBuilder(this, args);
+    public override VirtualNetwork Build() => new VirtualNetwork(Name, args);
+
+    public override VirtualNetworkArgsBuilder InitializeArgs() =>
+        new VirtualNetworkArgsBuilder(this, args);
 }
 
-public class VirtualNetworkArgsBuilder :
-    AzureResourceArgsBuilder<VirtualNetwork, VirtualNetworkArgs>
+public class VirtualNetworkArgsBuilder
+    : AzureResourceArgsBuilder<VirtualNetwork, VirtualNetworkArgs>
 {
-    private VirtualNetworkArgs args;
-    public VirtualNetworkArgsBuilder(
-            VirtualNetworkBuilder resourceBuilder, VirtualNetworkArgs args)
+    private readonly VirtualNetworkArgs args;
+
+    public VirtualNetworkArgsBuilder(VirtualNetworkBuilder resourceBuilder, VirtualNetworkArgs args)
         : base(resourceBuilder)
     {
         this.args = args;

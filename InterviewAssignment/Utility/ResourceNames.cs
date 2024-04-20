@@ -4,7 +4,6 @@ using Pulumi.AzureNative.Resources;
 using Pulumi.AzureNative.Network;
 using Pulumi.AzureNative.Storage;
 using Pulumi.AzureNative.Web;
-using Pulumi;
 
 public class ResourceNames
 {

@@ -1,13 +1,31 @@
-using InterviewAssignmnet.Extensions;
+using InterviewAssignmnet.CustomResources.Builders.Network;
+using InterviewAssignmnet.Utility;
+using Pulumi;
 using Pulumi.AzureNative.Network;
 
 namespace InterviewAssignmnet.CustomResources.Network;
 
 public class AssignmentSubnet
 {
-    private Subnet subnet;
-    public AssignmentSubnet(string name, SubnetArgs subnetArgs)
+    private readonly Subnet subnet;
+
+    public AssignmentSubnet(
+        string nameSuffix,
+        Resources.AssignmentResourceGroup rg,
+        AssignmentVirtualNetwork vnet,
+        AssignmentNetworkSecurityGroup funcAppSnetNsg,
+        string addressPrefix
+    )
     {
-        this.subnet = new Subnet(name, subnetArgs);
+        subnet = new SubnetBuilder(nameSuffix)
+            .InitializeArgs()
+            .WithResourceGroup(rg.Name)
+            .WithVirtualNetwork(vnet.Name)
+            .WithNetworkSecurityGroup(funcAppSnetNsg.Id)
+            .WithAddressPrefix(addressPrefix)
+            .Finalize()
+            .Build();
     }
+
+    public Output<string> Id => subnet.Id;
 }

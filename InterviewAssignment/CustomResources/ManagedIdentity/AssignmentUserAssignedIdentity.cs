@@ -1,12 +1,13 @@
 using InterviewAssignmnet.CustomResources.Builders.ManagedIdentity;
 using InterviewAssignmnet.CustomResources.Resources;
-using Pulumi;
 using Pulumi.AzureNative.ManagedIdentity;
 
 namespace InterviewAssignmnet.CustomResources.ManagedIdentity;
+
 public class AssignmentUserAssignedIdentity
 {
-    private UserAssignedIdentity identity;
+    private readonly UserAssignedIdentity identity;
+
     public AssignmentUserAssignedIdentity(string nameSuffix, AssignmentResourceGroup rg)
     {
         identity = new UserAssignedIdentityBuilder(nameSuffix)
@@ -19,4 +20,3 @@ public class AssignmentUserAssignedIdentity
 
     public Pulumi.Output<string> Id => identity.Id;
 }
-

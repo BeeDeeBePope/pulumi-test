@@ -1,4 +1,5 @@
-using System;
+using InterviewAssignmnet.CustomResources.Builders.Web;
+using InterviewAssignmnet.CustomResources.Resources;
 using Pulumi;
 using Pulumi.AzureNative.Web;
 
@@ -6,11 +7,19 @@ namespace InterviewAssignmnet.CustomResources.Web;
 
 public class AssignmentAppServicePlan
 {
-    private AppServicePlan asp;
-    public AssignmentAppServicePlan(string name, AppServicePlanArgs aspArgs)
+    private readonly AppServicePlan asp;
+
+    public AssignmentAppServicePlan(string nameSuffix, AssignmentResourceGroup rg)
     {
-        asp = new AppServicePlan(name, aspArgs);
+        asp = new AppServicePlanBuilder(nameSuffix)
+        .InitializeArgs()
+        .WithLocation(rg.Location)
+        .WithResourceGroup(rg.Name)
+        .WithOsKind("Linux")
+        .WithSku(AspSku.FunctionApp)
+        .Finalize()
+        .Build();
     }
 
-    internal Input<string> GetId() => asp.Id;
+    public Input<string> Id => asp.Id;
 }

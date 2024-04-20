@@ -8,6 +8,7 @@ using Pulumi.AzureNative.Network;
 public class AssignmentVirtualNetwork
 {
     private readonly VirtualNetwork vnet;
+
     public AssignmentVirtualNetwork(string nameSuffix, AssignmentResourceGroup rg)
     {
         vnet = new VirtualNetworkBuilder(nameSuffix)
@@ -19,5 +20,5 @@ public class AssignmentVirtualNetwork
             .Build();
     }
 
-    internal Pulumi.Output<string> GetName() => vnet.Name;
+    internal Pulumi.Output<string> Name => vnet.Name;
 }
