@@ -13,6 +13,7 @@ using Pulumi.AzureNative.Storage;
 namespace InterviewAssignmnet.Stacks;
 public class AssignmentStack : Stack
 {
+    private readonly string baseResourceName;
     private readonly ResourceNames resourceNames;
 
     //Vnet
@@ -49,6 +50,7 @@ public class AssignmentStack : Stack
 
         var location = azureConfig.Require("location");
 
+        baseResourceName = $"assignment-{location}";
 
         resourceNames = new ResourceNames(location);
 
@@ -65,13 +67,12 @@ public class AssignmentStack : Stack
 
     private void DeployVirtualNetworks()
     {
-        var networkConfig = new Config("network");
-        var vnetAddressSpace = networkConfig.Require("vnetAddressSpace");
-        var funcAppSubnetAddressSpace = networkConfig.Require("funcAppSubnetAddressSpace");
-        var appServiceSubnetAddressSpace = networkConfig.Require("appServiceSubnetAddressSpace");
+        // var networkConfig = new Config("network");
+        // var vnetAddressSpace = networkConfig.Require("vnetAddressSpace");
+        // var funcAppSubnetAddressSpace = networkConfig.Require("funcAppSubnetAddressSpace");
+        // var appServiceSubnetAddressSpace = networkConfig.Require("appServiceSubnetAddressSpace");
 
-        var assignmentVnetArgs = new AssignmentVirtualNetworkArgs(rg.GetName(), rg.GetLocation(), resourceNames.VnetName, vnetAddressSpace);
-        vnet = new AssignmentVirtualNetwork(resourceNames.VnetName, assignmentVnetArgs.GetVnetArgs());
+        vnet = new AssignmentVirtualNetwork(baseResourceName, rg);
 
         var defaultNsgRules = new AssignmentNetworkSecurityRules();
 
@@ -99,8 +100,7 @@ public class AssignmentStack : Stack
         var funcAppAspArgs = new AssignmentAppServicePlanArgs(rg.GetName(), resourceNames.FuncAppAspName, "Linux", AspSku.FunctionApp);
         funcAppAsp = new AssignmentAppServicePlan(resourceNames.FuncAppAspName, funcAppAspArgs.GetAspArgs());
 
-        var funcAppManagedIndentityArgs = new AssignmentUserAssignedIdentityArgs(rg.GetName(), resourceNames.FuncAppManagedIdentityName);
-        funcAppManagedIdentity = new AssignmentUserAssignedIdentity(resourceNames.FuncAppManagedIdentityName, funcAppManagedIndentityArgs.GetUserAssignedIdentityArgs());
+        funcAppManagedIdentity = new AssignmentUserAssignedIdentity(baseResourceName, rg);
 
         var funcAppSettings = new List<NameValuePairArgs>()
         {

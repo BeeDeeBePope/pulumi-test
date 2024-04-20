@@ -3,6 +3,7 @@ namespace InterviewAssignmnet.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Pulumi;
 using Pulumi.AzureNative.ManagedIdentity;
 using Pulumi.AzureNative.Network;
@@ -27,5 +28,11 @@ public static class ResourceNamePrefixer
         var prefix = _typeToPrefixTranslations.GetValueOrDefault(typeof(T), DEFAULT_RESOURCE_PREFIX);
         return prefixable.StartsWith(prefix) ? prefixable
             : string.Concat(prefix, prefixable);
+    }
+}
+
+public static class StringExtensions {
+    public static bool InNullOrEmpty(this string value){
+        return string.IsNullOrEmpty(value);
     }
 }

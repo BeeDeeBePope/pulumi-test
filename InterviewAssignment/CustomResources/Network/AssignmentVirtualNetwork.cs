@@ -1,17 +1,23 @@
 namespace InterviewAssignmnet.CustomResources.Network;
 
-using System;
-using InterviewAssignmnet.Extensions;
-using Pulumi;
+using InterviewAssignmnet.CustomResources.Builders.Network;
+using InterviewAssignmnet.CustomResources.Resources;
+using InterviewAssignmnet.Utility;
 using Pulumi.AzureNative.Network;
 
 public class AssignmentVirtualNetwork
 {
-    private VirtualNetwork vnet;
-    public AssignmentVirtualNetwork(string name, VirtualNetworkArgs args)
+    private readonly VirtualNetwork vnet;
+    public AssignmentVirtualNetwork(string nameSuffix, AssignmentResourceGroup rg)
     {
-        this.vnet = new VirtualNetwork(name, args);
+        vnet = new VirtualNetworkBuilder(nameSuffix)
+            .InitializeArgs()
+            .WithLocation(rg.Location)
+            .WithResourceGroup(rg.Name)
+            .WithAddressSpace(Config.Network.VnetAddressSpace)
+            .Finalize()
+            .Build();
     }
 
-    internal Output<string> GetName() => vnet.Name;
+    internal Pulumi.Output<string> GetName() => vnet.Name;
 }

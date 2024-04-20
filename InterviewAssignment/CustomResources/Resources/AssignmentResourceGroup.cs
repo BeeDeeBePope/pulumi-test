@@ -13,6 +13,6 @@ public class AssignmentResourceGroup
         this.rg = new ResourceGroup(name, rgArgs);
     }
 
-    public Output<string> GetName() => rg.Name;
-    public Output<string> GetLocation() => rg.Location;
+    public Output<string> Name => rg.Name;
+    public Output<string> Location => rg.Location;
 }

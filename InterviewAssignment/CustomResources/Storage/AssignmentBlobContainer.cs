@@ -24,9 +24,9 @@ public class AssignmentBlobContainer
             SharedAccessStartTime = "2023-01-01T00:00:00Z",
             SharedAccessExpiryTime = "2023-12-31T00:00:00Z",
             ResourceGroupName = "resourceGroupName",
-            Permissions = Permissions.R + Permissions.W + Permissions.D,
+            Permissions = $"{Permissions.R}{Permissions.W}{Permissions.D}",
             Services = Services.Blobs,
-            ResourceTypes = SignedResourceTypes.Service + SignedResourceTypes.Container + SignedResourceTypes.Object,
+            ResourceTypes = SignedResourceTypes.S + SignedResourceTypes.Container + SignedResourceTypes.Object,
         }));
     }
 }
