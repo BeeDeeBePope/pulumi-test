@@ -2,7 +2,6 @@ using InterviewAssignmnet.CustomResources.Builders.Web;
 using InterviewAssignmnet.CustomResources.Network;
 using InterviewAssignmnet.CustomResources.Resources;
 using InterviewAssignmnet.CustomResources.Storage;
-using Pulumi;
 using Pulumi.AzureNative.Web;
 using Pulumi.AzureNative.Web.Inputs;
 
@@ -52,7 +51,7 @@ public class AssignmentWebApp
             .Build();
     }
 
-    public Output<string> Id => webApp.Id;
+    public Pulumi.Output <string> Id => webApp.Id;
 
-    public Input<string> Name => webApp.Name;
+    public Pulumi.Output <string> Name => webApp.Name;
 }

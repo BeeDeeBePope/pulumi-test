@@ -1,6 +1,5 @@
 using InterviewAssignmnet.CustomResources.Builders.Network;
 using InterviewAssignmnet.CustomResources.Resources;
-using Pulumi;
 using Pulumi.AzureNative.Network;
 
 namespace InterviewAssignmnet.CustomResources.Network;
@@ -45,5 +44,5 @@ public class AssignmentNetworkSecurityGroup
             .Build();
     }
 
-    internal Input<string> Id => nsg.Id;
+    public Pulumi.Output <string> Id => nsg.Id;
 }

@@ -1,5 +1,4 @@
 using Pulumi.AzureNative.Web;
-using Pulumi.AzureNative.Web.Inputs;
 
 namespace InterviewAssignmnet.CustomResources.Builders.Web;
 

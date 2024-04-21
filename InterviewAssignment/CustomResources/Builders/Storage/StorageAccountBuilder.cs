@@ -44,17 +44,4 @@ public class StorageAccountArgsBuilder
         args.ResourceGroupName = rgName;
         return this;
     }
-
-    // public StorageAccountArgsBuilder WithOsKind(Pulumi.Input<string> osKind)
-    // {
-    //     args.Kind = osKind;
-    //     args.Reserved = osKind == (Input<string>)"Linux";
-    //     return this;
-    // }
-
-    // public StorageAccountArgsBuilder WithSku(Input<AspSku> aspSku)
-    // {
-    //     args.Sku = SkuDescriptionArgs[aspSku];
-    //     return this;
-    // }
 }

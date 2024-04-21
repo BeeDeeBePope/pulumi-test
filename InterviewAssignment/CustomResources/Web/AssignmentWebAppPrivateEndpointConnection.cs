@@ -20,7 +20,4 @@ public class AssignmentWebAppPrivateEndpointConnection: IPrivateEndpointConnecti
     }
 
     public Pulumi.Output<string> Id => privateEndpoint.Id;
-    public Pulumi.Output<string> Name => privateEndpoint.Name;
-    // public Pulumi.Output<string> PrincipalId => privateEndpoint.PrincipalId;
-    // public Pulumi.Output<string> ClientId => privateEndpoint.ClientId;
 }

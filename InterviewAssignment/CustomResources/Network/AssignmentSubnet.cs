@@ -1,5 +1,4 @@
 using InterviewAssignmnet.CustomResources.Builders.Network;
-using Pulumi;
 using Pulumi.AzureNative.Network;
 
 namespace InterviewAssignmnet.CustomResources.Network;
@@ -27,5 +26,5 @@ public class AssignmentSubnet
             .Build();
     }
 
-    public Output<string> Id => subnet.Id;
+    public Pulumi.Output <string> Id => subnet.Id;
 }

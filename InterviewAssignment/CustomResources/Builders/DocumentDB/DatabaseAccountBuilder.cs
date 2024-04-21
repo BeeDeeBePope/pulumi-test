@@ -69,10 +69,4 @@ public class DatabaseAccountArgsBuilder
             .ToList();
         return this;
     }
-
-    // public DatabaseAccountArgsBuilder WithReplicationLocations(List<string> locations)
-    // {
-    //     args.
-    //     return this;
-    // }
 }

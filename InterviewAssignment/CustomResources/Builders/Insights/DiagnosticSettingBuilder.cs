@@ -2,7 +2,7 @@ using InterviewAssignmnet.CustomResources.Web;
 using Pulumi.AzureNative.Insights;
 using Pulumi.AzureNative.Insights.Inputs;
 
-namespace InterviewAssignmnet.CustomResources.Builders.ManagedIdentity;
+namespace InterviewAssignmnet.CustomResources.Builders.Insights;
 
 public class DiagnosticSettingBuilder
     : AzureResourceBuilder<DiagnosticSetting, DiagnosticSettingArgs>

@@ -25,6 +25,4 @@ public class AssignmentDatabaseAccount
 
     public Pulumi.Output<string> Id => databaseAccount.Id;
     public Pulumi.Output<string> Name => databaseAccount.Name;
-    // public Pulumi.Output<string> PrincipalId => databaseAccount.PrincipalId;
-    // public Pulumi.Output<string> ClientId => databaseAccount.ClientId;
 }

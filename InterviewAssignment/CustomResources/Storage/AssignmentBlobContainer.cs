@@ -28,7 +28,7 @@ public class AssignmentBlobContainer
             .Build();
     }
 
-    public Output<string> GetSasUrl()
+    public Pulumi.Output <string> GetSasUrl()
     {
         var sasToken = Output.Create(
             ListStorageAccountSAS.InvokeAsync(

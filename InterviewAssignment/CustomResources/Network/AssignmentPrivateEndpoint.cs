@@ -1,5 +1,4 @@
 using InterviewAssignmnet.CustomResources.Builders.Network;
-using Pulumi;
 using Pulumi.AzureNative.Network;
 
 namespace InterviewAssignmnet.CustomResources.Network;
@@ -25,5 +24,5 @@ public class AssignmentPrivateEndpoint
             .Build();
     }
 
-    public Output<string> Id => privateEndpoint.Id;
+    public Pulumi.Output <string> Id => privateEndpoint.Id;
 }

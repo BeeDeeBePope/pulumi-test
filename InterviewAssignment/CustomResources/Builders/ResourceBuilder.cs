@@ -3,7 +3,7 @@ using InterviewAssignmnet.Extensions;
 using InterviewAssignmnet.Utility;
 
 
-namespace InterviewAssignmnet.CustomResources;
+namespace InterviewAssignmnet.CustomResources.Builders;
 
 public abstract class AzureResourceBuilder<TResource, TResourceArgs>
     where TResource : Pulumi.CustomResource

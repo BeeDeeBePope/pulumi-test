@@ -20,5 +20,5 @@ public class AssignmentVirtualNetwork
             .Build();
     }
 
-    internal Pulumi.Output<string> Name => vnet.Name;
+    public Pulumi.Output<string> Name => vnet.Name;
 }

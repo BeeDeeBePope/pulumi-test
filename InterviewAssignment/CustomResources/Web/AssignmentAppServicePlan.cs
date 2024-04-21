@@ -1,6 +1,5 @@
 using InterviewAssignmnet.CustomResources.Builders.Web;
 using InterviewAssignmnet.CustomResources.Resources;
-using Pulumi;
 using Pulumi.AzureNative.Web;
 
 namespace InterviewAssignmnet.CustomResources.Web;
@@ -21,5 +20,5 @@ public class AssignmentAppServicePlan
             .Build();
     }
 
-    public Input<string> Id => asp.Id;
+    public Pulumi.Output <string> Id => asp.Id;
 }

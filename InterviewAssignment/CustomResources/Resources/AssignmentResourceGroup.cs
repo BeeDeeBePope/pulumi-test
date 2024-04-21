@@ -1,5 +1,4 @@
 using InterviewAssignmnet.CustomResources.Builders.Resources;
-using Pulumi;
 using Pulumi.AzureNative.Resources;
 
 namespace InterviewAssignmnet.CustomResources.Resources;
@@ -17,6 +16,6 @@ public class AssignmentResourceGroup
             .Build();
     }
 
-    public Output<string> Name => rg.Name;
-    public Output<string> Location => rg.Location;
+    public Pulumi.Output <string> Name => rg.Name;
+    public Pulumi.Output <string> Location => rg.Location;
 }

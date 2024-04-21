@@ -18,8 +18,6 @@ public class AssignmentUserAssignedIdentity
             .Build();
     }
 
-    public Pulumi.Output<string> Id => identity.Id;
     public Pulumi.Output<string> Name => identity.Name;
     public Pulumi.Output<string> PrincipalId => identity.PrincipalId;
-    public Pulumi.Output<string> ClientId => identity.ClientId;
 }
