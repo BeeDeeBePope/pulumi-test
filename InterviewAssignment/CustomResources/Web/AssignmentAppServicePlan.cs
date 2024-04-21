@@ -9,14 +9,14 @@ public class AssignmentAppServicePlan
 {
     private readonly AppServicePlan asp;
 
-    public AssignmentAppServicePlan(string nameSuffix, AssignmentResourceGroup rg)
+    public AssignmentAppServicePlan(string nameSuffix, AssignmentResourceGroup rg, AspSku appSku)
     {
         asp = new AppServicePlanBuilder(nameSuffix)
         .InitializeArgs()
         .WithLocation(rg.Location)
         .WithResourceGroup(rg.Name)
         .WithOsKind("Linux")
-        .WithSku(AspSku.FunctionApp)
+        .WithSku(appSku)
         .Finalize()
         .Build();
     }

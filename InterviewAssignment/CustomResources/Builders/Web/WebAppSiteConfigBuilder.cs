@@ -5,12 +5,13 @@ namespace InterviewAssignmnet.CustomResources.Builders.Web;
 
 public class WebAppSiteConfigBuilder
 {
-    private SiteConfigArgs siteConfig =
-        new() { AppSettings = new Pulumi.InputList<NameValuePairArgs>() };
+    private readonly SiteConfigArgs siteConfig = new();
+    private readonly List<NameValuePairArgs> appSettings = new();
 
-    public WebAppSiteConfigBuilder WithNewAppSetting(Pulumi.Input<NameValuePairArgs> appSetting)
+    public WebAppSiteConfigBuilder WithNewAppSetting(NameValuePairArgs appSetting)
     {
-        siteConfig.AppSettings.Concat(appSetting);
+        appSettings.Add(appSetting);
+        siteConfig.AppSettings = appSettings;
         return this;
     }
 

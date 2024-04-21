@@ -15,8 +15,10 @@ public class AssignmentWebApp
         string nameSuffix,
         AssignmentResourceGroup rg,
         AssignmentAppServicePlan asp,
+        WebAppKind appKind,
         AssignmentStorageAccount storageAccount,
-        AssignmentSubnet subnet = default
+        AssignmentSubnet? subnet = default,
+        AssignmentBlobContainer? blobContainer = default
     )
     {
         this.webApp = new WebAppBuilder(nameSuffix)
@@ -24,7 +26,7 @@ public class AssignmentWebApp
             .WithLocation(rg.Location)
             .WithResourceGroup(rg.Name)
             .WithAppServicePlan(asp.Id)
-            .WithAppKind(WebAppKind.FunctionApp)
+            .WithAppKind(appKind)
             .WithSubnet(subnet.Id)
             .WithSiteConfig(builder =>
                 builder
@@ -35,8 +37,16 @@ public class AssignmentWebApp
                             Value = storageAccount.GetConnectionString()
                         }
                     )
+                    .WithNewAppSetting(
+                        new NameValuePairArgs
+                        {
+                            Name = "FUNCTIONS_EXTENSION_VERSION",
+                            Value = "~4"
+                        }
+                    )
                     .Build()
             )
+            .WithDiagnosticsSetting(blobContainer)
             .Finalize()
             .Build();
     }

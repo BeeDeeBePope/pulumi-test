@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Pulumi;
 using Pulumi.AzureNative.Network;
 
@@ -22,6 +23,7 @@ public class NetworkSecurityGroupArgsBuilder
     : AzureResourceArgsBuilder<NetworkSecurityGroup, NetworkSecurityGroupArgs>
 {
     private readonly NetworkSecurityGroupArgs args;
+    private readonly List<Pulumi.AzureNative.Network.Inputs.SecurityRuleArgs> securityRules = new();
 
     public NetworkSecurityGroupArgsBuilder(
         NetworkSecurityGroupBuilder resourceBuilder,
@@ -31,8 +33,6 @@ public class NetworkSecurityGroupArgsBuilder
     {
         this.args = args;
         this.args.NetworkSecurityGroupName = resourceBuilder.Name;
-        this.args.SecurityRules =
-            new InputList<Pulumi.AzureNative.Network.Inputs.SecurityRuleArgs>();
     }
 
     public NetworkSecurityGroupArgsBuilder WithLocation(Input<string> azureLocation)
@@ -51,7 +51,8 @@ public class NetworkSecurityGroupArgsBuilder
         Func<SecurityRuleBuilder, Pulumi.AzureNative.Network.Inputs.SecurityRuleArgs> builder
     )
     {
-        args.SecurityRules.Concat(builder(new SecurityRuleBuilder()));
+        securityRules.Add(builder(new SecurityRuleBuilder()));
+        args.SecurityRules = securityRules;
         return this;
     }
 }

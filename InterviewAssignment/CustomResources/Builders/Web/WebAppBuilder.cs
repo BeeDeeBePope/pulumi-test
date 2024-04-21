@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using InterviewAssignmnet.CustomResources.Storage;
 using Pulumi.AzureNative.Web;
 using Pulumi.AzureNative.Web.Inputs;
 
@@ -80,6 +82,41 @@ public class WebAppArgsBuilder : AzureResourceArgsBuilder<WebApp, WebAppArgs>
     public WebAppArgsBuilder WithSubnet(Pulumi.Input<string> subnetId)
     {
         args.VirtualNetworkSubnetId = subnetId;
+        return this;
+    }
+
+    public WebAppArgsBuilder WithDiagnosticsSetting(AssignmentBlobContainer blob)
+    {
+
+        var funcAppDiagnosticSettings = new WebAppDiagnosticLogsConfiguration($"{resourceBuilder.Name}-diagnostics", new WebAppDiagnosticLogsConfigurationArgs
+        {
+            Name = resourceBuilder.Name,
+            ResourceGroupName = args.ResourceGroupName,
+            DetailedErrorMessages = new EnabledConfigArgs
+            {
+                Enabled = false,
+            },
+            FailedRequestsTracing = new EnabledConfigArgs
+            {
+                Enabled = false,
+            },
+            ApplicationLogs = new ApplicationLogsConfigArgs
+            {
+                AzureBlobStorage = new AzureBlobStorageApplicationLogsConfigArgs
+                {
+                    Level = LogLevel.Information,
+                    RetentionInDays = 7,
+                    // SasUrl = blob.GetSasUrl(),
+                }
+            },
+            HttpLogs = new HttpLogsConfigArgs {
+                AzureBlobStorage = new AzureBlobStorageHttpLogsConfigArgs {
+                    Enabled = false,
+                }
+            },
+            // Kind = ""
+        });
+
         return this;
     }
 }

@@ -4,12 +4,6 @@ using Pulumi.AzureNative.Storage;
 
 namespace InterviewAssignmnet.CustomResources.Builders.Storage;
 
-public enum AspSku
-{
-    FunctionApp,
-    AppServiceFree,
-    AppServiceStandard
-}
 
 public class StorageAccountBuilder : AzureResourceBuilder<StorageAccount, StorageAccountArgs>
 {

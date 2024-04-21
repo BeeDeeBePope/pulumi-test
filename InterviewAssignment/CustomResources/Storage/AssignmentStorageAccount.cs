@@ -24,7 +24,7 @@ public class AssignmentStorageAccount
 
     public Output<string> Id => storageAccount.Id;
 
-    public Input<string> Name => storageAccount.Name;
+    public Output<string> Name => storageAccount.Name;
 
     public Output<string> GetConnectionString()
     {

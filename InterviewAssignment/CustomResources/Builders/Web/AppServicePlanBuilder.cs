@@ -8,6 +8,7 @@ namespace InterviewAssignmnet.CustomResources.Builders.Web;
 public enum AspSku
 {
     FunctionApp,
+    FunctionsPremium,
     AppServiceFree,
     AppServiceStandard
 }
@@ -37,8 +38,16 @@ public class AppServicePlanArgsBuilder
                 new() { Tier = "Dynamic", Name = "Y1" }
             },
             {
+                AspSku.FunctionsPremium,
+                new() { Tier = "ElasticPremium", Name = "EP1" }
+            },
+            {
                 AspSku.AppServiceFree,
                 new() { Tier = "Free", Name = "F1" }
+            },
+            {
+                AspSku.AppServiceStandard,
+                new() { Tier = "Standard", Name = "S1" }
             }
         };
 

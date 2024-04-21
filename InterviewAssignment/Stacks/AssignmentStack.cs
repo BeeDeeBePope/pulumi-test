@@ -41,13 +41,14 @@ public class AssignmentStack : Pulumi.Stack
     private AssignmentWebApp appService;
     private AssignmentAppServicePlan appServiceAsp;
     private AssignmentUserAssignedIdentity appServiceManagedIdentity;
-    private AssignmentStorageAccount funcAppStorage;
-    private BlobContainer blobContainer;
+    private AssignmentStorageAccount appServiceStorage;
+    private AssignmentStorageAccount diagnosticsStorage;
+    private AssignmentBlobContainer blobContainer;
 
     public AssignmentStack()
     {
-        funcAppSuffix = "-func-app";
-        appServiceSuffix = "-app-service";
+        funcAppSuffix = "func-app";
+        appServiceSuffix = "app-service";
 
         rg = new AssignmentResourceGroup("main", Config.Azure.Location);
 
@@ -78,67 +79,72 @@ public class AssignmentStack : Pulumi.Stack
 
     private void DeployWebApps()
     {
-        funcAppAsp = new AssignmentAppServicePlan(funcAppSuffix, rg);
+        diagnosticsStorage = new AssignmentStorageAccount("diagnostics", rg);
+        blobContainer = new AssignmentBlobContainer("diagnostics", rg, diagnosticsStorage);
 
-        funcAppManagedIdentity = new AssignmentUserAssignedIdentity(baseResourceName, rg);
-        funcAppStorage = new AssignmentStorageAccount(funcAppSuffix, rg);
-
-        funcApp = new AssignmentWebApp(
-            baseResourceName,
+        funcAppAsp = new AssignmentAppServicePlan(
+            funcAppSuffix,
             rg,
-            funcAppAsp,
-            funcAppStorage,
-            funcAppSubnet
+            CustomResources.Builders.Web.AspSku.FunctionsPremium
         );
 
-        // var funcAppStorageArgs = new AssignmentStorageAccountArgs(rg.GetName(), resourceNames.FuncAppStorageAccount);
+        funcAppManagedIdentity = new AssignmentUserAssignedIdentity(funcAppSuffix, rg);
 
-        // var blobContainerArgs = new AssignmentBlobContainerArgs();
-        // blobContainer = new AssignmentBlobContainer(resourceNames.FuncAppDiagnosticsSettingsContainer, blobContainerArgs);
+        var clientConfig = Pulumi.AzureNative.Authorization.GetClientConfig.Invoke();
+        var roleAssignment = new Pulumi.AzureNative.Authorization.RoleAssignment(
+            $"{funcAppManagedIdentity.Name}-roleAssignment",
+            new()
+            {
+                PrincipalId = funcAppManagedIdentity.PrincipalId,
+                PrincipalType = Pulumi.AzureNative.Authorization.PrincipalType.User,
+                RoleAssignmentName = $"{funcAppManagedIdentity.Name}-storage",
+                RoleDefinitionId = clientConfig.Apply(clientConfig =>
+                    $"/subscriptions/{clientConfig.SubscriptionId}/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe"
+                ),
+                Scope = diagnosticsStorage.Id,
+            }
+        );
 
-        // var funcAppAspArgs = new AssignmentAppServicePlanArgs(rg.GetName(), resourceNames.FuncAppAspName, "Linux", AspSku.FunctionApp);
+        funcApp = new AssignmentWebApp(
+            funcAppSuffix,
+            rg,
+            funcAppAsp,
+            CustomResources.Builders.Web.WebAppKind.FunctionApp,
+            diagnosticsStorage,
+            funcAppSubnet,
+            blobContainer
+        );
 
-        // var funcAppSettings = new List<NameValuePairArgs>()
-        // {
-        //     new NameValuePairArgs
-        //     {
-        //         Name = "AzureWebJobsStorage",
-        //         Value = funcAppStorage.GetConnectionString(),
-        //     },
-        // };
-        // var funcAppDiagnosticSettings = new WebAppDiagnosticLogsConfiguration("FuncAppDiagnosticsSettings", new WebAppDiagnosticLogsConfigurationArgs
-        // {
-        //     Name = resourceNames.FuncAppDiagnosticsSettings,
-        //     ResourceGroupName = rg.GetName(),
-        //     DetailedErrorMessages = new EnabledConfigArgs
-        //     {
-        //         Enabled = false,
-        //     },
-        //     FailedRequestsTracing = new EnabledConfigArgs
-        //     {
-        //         Enabled = false,
-        //     },
-        //     ApplicationLogs = new ApplicationLogsConfigArgs
-        //     {
-        //         AzureBlobStorage = new AzureBlobStorageApplicationLogsConfigArgs
-        //         {
-        //             Level = LogLevel.Information,
-        //             RetentionInDays = 7,
-        //             SasUrl = blobContainer
-        //         }
-        //     },
-        //     HttpLogs = ,
-        //     Kind = ""
-        // });
-        // var funcAppArgs = new AssignmentWebAppArgs(rg.GetName(), funcAppAsp.GetId(), WebAppKind.FunctionApp, funcAppManagedIdentity.GetId(), funcAppSettings);
+        appServiceAsp = new AssignmentAppServicePlan(
+            appServiceSuffix,
+            rg,
+            CustomResources.Builders.Web.AspSku.AppServiceStandard
+        );
 
-        // var appServiceAspArgs = new AssignmentAppServicePlanArgs(rg.GetName(), resourceNames.AppServiceAspName, "Linux", AspSku.AppServiceFree);
-        // appServiceAsp = new AssignmentAppServicePlan(resourceNames.AppServiceAspName, appServiceAspArgs.GetAspArgs());
+        appServiceManagedIdentity = new AssignmentUserAssignedIdentity(appServiceSuffix, rg);
 
-        // var appServiceManagedIndentityArgs = new AssignmentUserAssignedIdentityArgs(rg.GetName(), resourceNames.AppServiceManagedIdentityName);
-        // appServiceManagedIdentity = new AssignmentUserAssignedIdentity(resourceNames.AppServiceManagedIdentityName, appServiceManagedIndentityArgs.GetUserAssignedIdentityArgs());
+        var roleAssignment2 = new Pulumi.AzureNative.Authorization.RoleAssignment(
+            $"{appServiceManagedIdentity.Name}-roleAssignment",
+            new()
+            {
+                PrincipalId = appServiceManagedIdentity.PrincipalId,
+                PrincipalType = Pulumi.AzureNative.Authorization.PrincipalType.User,
+                RoleAssignmentName = $"{appServiceManagedIdentity.Name}-cosmos",
+                RoleDefinitionId = clientConfig.Apply(clientConfig =>
+                    $"/subscriptions/{clientConfig.SubscriptionId}/providers/Microsoft.Authorization/roleDefinitions/fbdf93bf-df7d-467e-a4d2-9458aa1360c8"
+                ),
+                Scope = cosmosDb.Id,
+            }
+        );
 
-        // var appServiceArgs = new AssignmentWebAppArgs(rg.GetName(), appServiceAsp.GetId(), WebAppKind.WebApp, appServiceManagedIdentity.GetId(), new List<Pulumi.AzureNative.Web.Inputs.NameValuePairArgs>());
-        // appService = new AssignmentWebApp(resourceNames.AppServiceName, appServiceArgs.GetWebAppArgs());
+        appService = new AssignmentWebApp(
+            appServiceSuffix,
+            rg,
+            appServiceAsp,
+            CustomResources.Builders.Web.WebAppKind.WebApp,
+            diagnosticsStorage,
+            appServiceSubnet,
+            blobContainer
+        );
     }
 }

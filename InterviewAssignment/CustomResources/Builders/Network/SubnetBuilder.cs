@@ -51,4 +51,18 @@ public class SubnetArgsBuilder : AzureResourceArgsBuilder<Subnet, SubnetArgs>
         };
         return this;
     }
+
+    public SubnetArgsBuilder WithWebAppDelegation()
+    {
+        args.Delegations = new[]
+        {
+            new Pulumi.AzureNative.Network.Inputs.DelegationArgs()
+            {
+                Actions = new[] { "Microsoft.Network/virtualNetworks/subnets/join/action" },
+                Name = "WebAppDelegation",
+                ServiceName = "Microsoft.Web/serverFarms",
+            }
+        };
+        return this;
+    }
 }

@@ -23,6 +23,7 @@ public class AssignmentSubnet
             .WithVirtualNetwork(vnet.Name)
             .WithNetworkSecurityGroup(funcAppSnetNsg.Id)
             .WithAddressPrefix(addressPrefix)
+            .WithWebAppDelegation()
             .Finalize()
             .Build();
     }
