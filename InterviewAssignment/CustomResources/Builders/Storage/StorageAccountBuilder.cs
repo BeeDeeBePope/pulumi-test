@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Pulumi;
 using Pulumi.AzureNative.Storage;
 
 namespace InterviewAssignmnet.CustomResources.Builders.Storage;

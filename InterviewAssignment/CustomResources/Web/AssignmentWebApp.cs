@@ -2,6 +2,7 @@ using InterviewAssignmnet.CustomResources.Builders.Web;
 using InterviewAssignmnet.CustomResources.Network;
 using InterviewAssignmnet.CustomResources.Resources;
 using InterviewAssignmnet.CustomResources.Storage;
+using Pulumi;
 using Pulumi.AzureNative.Web;
 using Pulumi.AzureNative.Web.Inputs;
 
@@ -17,17 +18,22 @@ public class AssignmentWebApp
         AssignmentAppServicePlan asp,
         WebAppKind appKind,
         AssignmentStorageAccount storageAccount,
-        AssignmentSubnet? subnet = default,
-        AssignmentBlobContainer? blobContainer = default
+        AssignmentSubnet? subnet = default
     )
     {
-        this.webApp = new WebAppBuilder(nameSuffix)
+        var builder = new WebAppBuilder(nameSuffix)
             .InitializeArgs()
             .WithLocation(rg.Location)
             .WithResourceGroup(rg.Name)
             .WithAppServicePlan(asp.Id)
-            .WithAppKind(appKind)
-            .WithSubnet(subnet.Id)
+            .WithAppKind(appKind);
+
+        if (subnet != null)
+        {
+            builder = builder.WithSubnet(subnet.Id);
+        }
+
+        this.webApp = builder
             .WithSiteConfig(builder =>
                 builder
                     .WithNewAppSetting(
@@ -38,16 +44,15 @@ public class AssignmentWebApp
                         }
                     )
                     .WithNewAppSetting(
-                        new NameValuePairArgs
-                        {
-                            Name = "FUNCTIONS_EXTENSION_VERSION",
-                            Value = "~4"
-                        }
+                        new NameValuePairArgs { Name = "FUNCTIONS_EXTENSION_VERSION", Value = "~4" }
                     )
                     .Build()
             )
-            .WithDiagnosticsSetting(blobContainer)
             .Finalize()
             .Build();
     }
+
+    public Output<string> Id => webApp.Id;
+
+    public Input<string> Name => webApp.Name;
 }

@@ -1,34 +1,20 @@
-using System.Diagnostics;
-using System.Threading;
+using System.Collections.Generic;
+using InterviewAssignmnet.CustomResources.DocumentDB;
 using InterviewAssignmnet.CustomResources.ManagedIdentity;
 using InterviewAssignmnet.CustomResources.Network;
 using InterviewAssignmnet.CustomResources.Resources;
+using InterviewAssignmnet.CustomResources.Insights;
 using InterviewAssignmnet.CustomResources.Storage;
 using InterviewAssignmnet.CustomResources.Web;
 using InterviewAssignmnet.Utility;
-using Pulumi.AzureNative.Storage;
 
 namespace InterviewAssignmnet.Stacks;
 
 public class AssignmentStack : Pulumi.Stack
 {
-    private readonly string baseResourceName;
     private readonly string funcAppSuffix;
     private readonly string appServiceSuffix;
-    private readonly ResourceNames resourceNames;
-
-    //Vnet
-    //snet x2
-    //private endpoing
-    //function app
-    //app service
-    //asp x2
-    //cosmos db
-    //cosmos collection
-    //storage account
-    //blob container
-    //user assigned managed identity
-
+    private readonly Pulumi.Output<Pulumi.AzureNative.Authorization.GetClientConfigResult> clientConfig;
     private readonly AssignmentResourceGroup rg;
     private AssignmentVirtualNetwork vnet;
     private AssignmentNetworkSecurityGroup funcAppSnetNsg;
@@ -36,22 +22,83 @@ public class AssignmentStack : Pulumi.Stack
     private AssignmentSubnet funcAppSubnet;
     private AssignmentSubnet appServiceSubnet;
     private AssignmentWebApp funcApp;
+    private AssignmentDiagnosticSetting funcAppDiagnosticSettings;
+    private AssignmentWebAppPrivateEndpointConnection funcAppPrivateEndpointConnection;
+    private AssignmentPrivateEndpoint funcAppPrivateEndpoint;
     private AssignmentAppServicePlan funcAppAsp;
     private AssignmentUserAssignedIdentity funcAppManagedIdentity;
     private AssignmentWebApp appService;
+    private AssignmentDiagnosticSetting appServiceDiagnosticSettings;
     private AssignmentAppServicePlan appServiceAsp;
     private AssignmentUserAssignedIdentity appServiceManagedIdentity;
-    private AssignmentStorageAccount appServiceStorage;
     private AssignmentStorageAccount diagnosticsStorage;
     private AssignmentBlobContainer blobContainer;
+    private AssignmentDatabaseAccount cosmosDb;
+    private AssignmentCosmosPrivateEndpointConnection cosmosDbPrivateEndpointConnection;
+    private AssignmentPrivateEndpoint cosmosPrivateEndpoint;
 
     public AssignmentStack()
     {
         funcAppSuffix = "func-app";
         appServiceSuffix = "app-service";
 
+        clientConfig = Pulumi.AzureNative.Authorization.GetClientConfig.Invoke();
         rg = new AssignmentResourceGroup("main", Config.Azure.Location);
 
+        DeployNetworks();
+        DeployStorage();
+        DeployFuncApp();
+        DeployAppService();
+    }
+
+    private void DeployStorage()
+    {
+        diagnosticsStorage = new AssignmentStorageAccount("diagnostics", rg);
+        blobContainer = new AssignmentBlobContainer("diagnostics", rg, diagnosticsStorage);
+
+        cosmosDb = new AssignmentDatabaseAccount("", rg, new List<string>{Config.Azure.Location});
+        cosmosDbPrivateEndpointConnection = new AssignmentCosmosPrivateEndpointConnection("cosmos", rg, cosmosDb);
+        cosmosPrivateEndpoint = new AssignmentPrivateEndpoint("cosmos", rg, appServiceSubnet, cosmosDbPrivateEndpointConnection);
+    }
+
+    private void DeployAppService()
+    {
+        appServiceAsp = new AssignmentAppServicePlan(
+            appServiceSuffix,
+            rg,
+            CustomResources.Builders.Web.AspSku.AppServiceStandard
+        );
+
+        appServiceManagedIdentity = new AssignmentUserAssignedIdentity(appServiceSuffix, rg);
+
+        var roleAssignment2 = new Pulumi.AzureNative.Authorization.RoleAssignment(
+            "app-service-cosmos-role-assignment",
+            new()
+            {
+                PrincipalId = appServiceManagedIdentity.PrincipalId,
+                PrincipalType = Pulumi.AzureNative.Authorization.PrincipalType.User,
+                RoleAssignmentName = $"{appServiceManagedIdentity.Name}-cosmos",
+                RoleDefinitionId = clientConfig.Apply(clientConfig =>
+                    $"/subscriptions/{clientConfig.SubscriptionId}/providers/Microsoft.Authorization/roleDefinitions/fbdf93bf-df7d-467e-a4d2-9458aa1360c8"
+                ),
+                Scope = cosmosDb.Id,
+            }
+        );
+
+        appService = new AssignmentWebApp(
+            appServiceSuffix,
+            rg,
+            appServiceAsp,
+            CustomResources.Builders.Web.WebAppKind.WebApp,
+            diagnosticsStorage,
+            appServiceSubnet
+        );
+
+        appServiceDiagnosticSettings = new AssignmentDiagnosticSetting(appServiceSuffix, diagnosticsStorage, appService);
+    }
+
+    private void DeployNetworks()
+    {
         this.vnet = new AssignmentVirtualNetwork("main", rg);
 
         funcAppSnetNsg = new AssignmentNetworkSecurityGroup(funcAppSuffix, rg);
@@ -73,26 +120,16 @@ public class AssignmentStack : Pulumi.Stack
             appServiceSnetNsg,
             Config.Network.AppServiceSubnetAddressSpace
         );
-
-        DeployWebApps();
     }
 
-    private void DeployWebApps()
+    private void DeployFuncApp()
     {
-        diagnosticsStorage = new AssignmentStorageAccount("diagnostics", rg);
-        blobContainer = new AssignmentBlobContainer("diagnostics", rg, diagnosticsStorage);
-
-        funcAppAsp = new AssignmentAppServicePlan(
-            funcAppSuffix,
-            rg,
-            CustomResources.Builders.Web.AspSku.FunctionsPremium
-        );
+        funcAppAsp = new AssignmentAppServicePlan(funcAppSuffix, rg, CustomResources.Builders.Web.AspSku.FunctionApp);
 
         funcAppManagedIdentity = new AssignmentUserAssignedIdentity(funcAppSuffix, rg);
 
-        var clientConfig = Pulumi.AzureNative.Authorization.GetClientConfig.Invoke();
         var roleAssignment = new Pulumi.AzureNative.Authorization.RoleAssignment(
-            $"{funcAppManagedIdentity.Name}-roleAssignment",
+            "func-app-storage-role-assignment",
             new()
             {
                 PrincipalId = funcAppManagedIdentity.PrincipalId,
@@ -110,41 +147,12 @@ public class AssignmentStack : Pulumi.Stack
             rg,
             funcAppAsp,
             CustomResources.Builders.Web.WebAppKind.FunctionApp,
-            diagnosticsStorage,
-            funcAppSubnet,
-            blobContainer
+            diagnosticsStorage
         );
 
-        appServiceAsp = new AssignmentAppServicePlan(
-            appServiceSuffix,
-            rg,
-            CustomResources.Builders.Web.AspSku.AppServiceStandard
-        );
+        funcAppDiagnosticSettings = new AssignmentDiagnosticSetting(funcAppSuffix, diagnosticsStorage, funcApp);
 
-        appServiceManagedIdentity = new AssignmentUserAssignedIdentity(appServiceSuffix, rg);
-
-        var roleAssignment2 = new Pulumi.AzureNative.Authorization.RoleAssignment(
-            $"{appServiceManagedIdentity.Name}-roleAssignment",
-            new()
-            {
-                PrincipalId = appServiceManagedIdentity.PrincipalId,
-                PrincipalType = Pulumi.AzureNative.Authorization.PrincipalType.User,
-                RoleAssignmentName = $"{appServiceManagedIdentity.Name}-cosmos",
-                RoleDefinitionId = clientConfig.Apply(clientConfig =>
-                    $"/subscriptions/{clientConfig.SubscriptionId}/providers/Microsoft.Authorization/roleDefinitions/fbdf93bf-df7d-467e-a4d2-9458aa1360c8"
-                ),
-                Scope = cosmosDb.Id,
-            }
-        );
-
-        appService = new AssignmentWebApp(
-            appServiceSuffix,
-            rg,
-            appServiceAsp,
-            CustomResources.Builders.Web.WebAppKind.WebApp,
-            diagnosticsStorage,
-            appServiceSubnet,
-            blobContainer
-        );
+        funcAppPrivateEndpointConnection = new AssignmentWebAppPrivateEndpointConnection(funcAppSuffix, rg, funcApp);
+        funcAppPrivateEndpoint = new AssignmentPrivateEndpoint(funcAppSuffix, rg, funcAppSubnet, funcAppPrivateEndpointConnection);
     }
 }

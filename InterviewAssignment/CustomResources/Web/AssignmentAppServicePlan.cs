@@ -12,13 +12,13 @@ public class AssignmentAppServicePlan
     public AssignmentAppServicePlan(string nameSuffix, AssignmentResourceGroup rg, AspSku appSku)
     {
         asp = new AppServicePlanBuilder(nameSuffix)
-        .InitializeArgs()
-        .WithLocation(rg.Location)
-        .WithResourceGroup(rg.Name)
-        .WithOsKind("Linux")
-        .WithSku(appSku)
-        .Finalize()
-        .Build();
+            .InitializeArgs()
+            .WithLocation(rg.Location)
+            .WithResourceGroup(rg.Name)
+            .WithOsKind("Linux")
+            .WithSku(appSku)
+            .Finalize()
+            .Build();
     }
 
     public Input<string> Id => asp.Id;

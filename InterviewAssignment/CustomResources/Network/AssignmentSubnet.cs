@@ -1,5 +1,4 @@
 using InterviewAssignmnet.CustomResources.Builders.Network;
-using InterviewAssignmnet.Utility;
 using Pulumi;
 using Pulumi.AzureNative.Network;
 

@@ -3,6 +3,8 @@ namespace InterviewAssignmnet.Extensions;
 using System;
 using System.Collections.Generic;
 using Pulumi;
+using Pulumi.AzureNative.DocumentDB;
+using Pulumi.AzureNative.Insights;
 using Pulumi.AzureNative.ManagedIdentity;
 using Pulumi.AzureNative.Network;
 using Pulumi.AzureNative.Resources;
@@ -15,14 +17,20 @@ public static class ResourceNamePrefixer
     private static readonly Dictionary<Type, string> _typeToPrefixTranslations =
         new()
         {
-            { typeof(ResourceGroup), "rg-" },
+            { typeof(DatabaseAccount), "cosmos-" },
+            { typeof(Pulumi.AzureNative.DocumentDB.PrivateEndpointConnection), "pec-" },
+            { typeof(DiagnosticSetting), "" },
+            { typeof(UserAssignedIdentity), "id-" },
             { typeof(VirtualNetwork), "vnet-" },
             { typeof(NetworkSecurityGroup), "nsg-" },
             { typeof(Subnet), "snet-" },
+            { typeof(PrivateEndpoint), "pe-" },
+            { typeof(ResourceGroup), "rg-" },
+            { typeof(BlobContainer), "" },
+            { typeof(StorageAccount), "sa" },
             { typeof(AppServicePlan), "asp-" },
             { typeof(WebApp), "app-" },
-            { typeof(UserAssignedIdentity), "id-" },
-            { typeof(StorageAccount), "sa" },
+            { typeof(WebAppPrivateEndpointConnection), "apppec-" },
         };
 
     public static string AddPrefixIfRequired<T>(this string prefixable)
@@ -36,11 +44,9 @@ public static class ResourceNamePrefixer
     }
 }
 
-public static class ResourceNameFormatter{
-    private static readonly Dictionary<
-        Type,
-        Func<string, string>
-    > _typeToFormatTranslations =
+public static class ResourceNameFormatter
+{
+    private static readonly Dictionary<Type, Func<string, string>> _typeToFormatTranslations =
         new() { { typeof(StorageAccount), (string formattable) => formattable.Replace("-", "") }, };
 
     private static Func<string, string> DEFAULT_RESOURCE_FORMATTER = (string s) => s;
